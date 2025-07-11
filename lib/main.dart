@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'presentation/tickets/bloc/ticket_list/ticket_list_bloc.dart';
-import 'presentation/tickets/bloc/ticket_list/ticket_list_event.dart';
-import 'presentation/tickets/screens/main_screen.dart';
-import 'presentation/auth/screens/login_screen.dart';
+import 'presentation/bloc/tickets/ticket_list_bloc.dart';
+import 'presentation/bloc/tickets/ticket_list_event.dart';
+import 'presentation/screens/main_screen.dart';
+import 'presentation/screens/login_screen.dart';
 
 void main() {
   runApp(const MyApp());

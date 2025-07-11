@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../bloc/ticket_list/ticket_list_bloc.dart';
-import '../bloc/ticket_list/ticket_list_event.dart';
-import '../bloc/ticket_list/ticket_list_state.dart';
-import '../widgets/ticket_card.dart';
+import '../bloc/tickets/ticket_list_bloc.dart';
+import '../bloc/tickets/ticket_list_event.dart';
+import '../bloc/tickets/ticket_list_state.dart';
+import '../shared_widgets/ticket_card.dart';
 
 class TicketListScreen extends StatelessWidget {
   const TicketListScreen({super.key});
