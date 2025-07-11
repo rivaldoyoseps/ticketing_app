@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/tickets/ticket_list_bloc.dart';
 import '../bloc/tickets/ticket_list_state.dart';
+import '../bloc/tickets/ticket_list_event.dart';
 import '../shared_widgets/ticket_card.dart';
 import '../../data/models/ticket_model.dart';
 
@@ -13,10 +14,8 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0;
-  String _selectedStatus = 'All';
-
   final List<String> _statusFilters = ['All', 'Open', 'In Progress', 'Closed'];
+  final List<String> _tabTitles = ['All Tickets', 'My Tickets', 'Assigned'];
 
   @override
   Widget build(BuildContext context) {
@@ -52,183 +51,206 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Statistics Cards
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                Row(
+      body: BlocBuilder<TicketListBloc, TicketListState>(
+        builder: (context, state) {
+          int selectedTab = 0;
+          String selectedStatus = 'All';
+          List<Ticket> tickets = [];
+          if (state is TicketListLoaded) {
+            selectedTab = state.tabIndex ?? 0;
+            selectedStatus = state.statusFilter ?? 'All';
+            tickets = state.filteredTickets;
+          }
+          return Column(
+            children: [
+              // Statistics Cards
+              Container(
+                padding: const EdgeInsets.all(16),
+                child: Column(
                   children: [
-                    Expanded(
-                      child: _buildStatCard(
-                        'Total Tickets',
-                        '24',
-                        Icons.assignment,
-                        Colors.blue,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildStatCard(
+                            'Total Tickets',
+                            '24',
+                            Icons.assignment,
+                            Colors.blue,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildStatCard(
+                            'Open',
+                            '8',
+                            Icons.pending,
+                            Colors.orange,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildStatCard(
+                            'In Progress',
+                            '12',
+                            Icons.sync,
+                            Colors.purple,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildStatCard(
+                            'Closed',
+                            '4',
+                            Icons.check_circle,
+                            Colors.green,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // Status Filter
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    const Text(
+                      'Filter by Status:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: _buildStatCard(
-                        'Open',
-                        '8',
-                        Icons.pending,
-                        Colors.orange,
+                      child: DropdownButton<String>(
+                        value: selectedStatus,
+                        isExpanded: true,
+                        underline: Container(),
+                        items: _statusFilters.map((String status) {
+                          return DropdownMenuItem<String>(
+                            value: status,
+                            child: Text(status),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          if (state is TicketListLoaded) {
+                            context.read<TicketListBloc>().add(
+                              FilterTicketsEvent(
+                                status: newValue,
+                                tabIndex: selectedTab,
+                              ),
+                            );
+                          }
+                        },
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildStatCard(
-                        'In Progress',
-                        '12',
-                        Icons.sync,
-                        Colors.purple,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildStatCard(
-                        'Closed',
-                        '4',
-                        Icons.check_circle,
-                        Colors.green,
-                      ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Tab Bar
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      spreadRadius: 1,
+                      blurRadius: 3,
+                      offset: const Offset(0, 1),
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-
-          // Status Filter
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                const Text(
-                  'Filter by Status:',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButton<String>(
-                    value: _selectedStatus,
-                    isExpanded: true,
-                    underline: Container(),
-                    items: _statusFilters.map((String status) {
-                      return DropdownMenuItem<String>(
-                        value: status,
-                        child: Text(status),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _selectedStatus = newValue!;
-                      });
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Tab Bar
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  spreadRadius: 1,
-                  blurRadius: 3,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                _buildTab('All Tickets', 0),
-                _buildTab('My Tickets', 1),
-                _buildTab('Assigned', 2),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Ticket List
-          Expanded(
-            child: BlocBuilder<TicketListBloc, TicketListState>(
-              builder: (context, state) {
-                if (state is TicketListLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (state is TicketListLoaded) {
-                  List<Ticket> filteredTickets = state.tickets;
-
-                  // Apply status filter
-                  if (_selectedStatus != 'All') {
-                    filteredTickets = filteredTickets.where((ticket) {
-                      return ticket.status == _selectedStatus;
-                    }).toList();
-                  }
-
-                  // Apply tab filter
-                  if (_selectedIndex == 1) {
-                    // My Tickets - filter by current user
-                    filteredTickets = filteredTickets.where((ticket) {
-                      return ticket.pic.any((user) => user.id == 1);
-                    }).toList();
-                  } else if (_selectedIndex == 2) {
-                    // Assigned - filter by assigned to current user
-                    filteredTickets = filteredTickets.where((ticket) {
-                      return ticket.assignedTo?.id == 1;
-                    }).toList();
-                  }
-
-                  if (filteredTickets.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        'No tickets found',
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                child: Row(
+                  children: List.generate(_tabTitles.length, (index) {
+                    bool isSelected = selectedTab == index;
+                    return Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          if (state is TicketListLoaded) {
+                            context.read<TicketListBloc>().add(
+                              FilterTicketsEvent(
+                                status: selectedStatus,
+                                tabIndex: index,
+                              ),
+                            );
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? Colors.blue[700]
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            _tabTitles[index],
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: isSelected
+                                  ? Colors.white
+                                  : Colors.grey[600],
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                        ),
                       ),
                     );
-                  }
+                  }),
+                ),
+              ),
 
-                  return ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: filteredTickets.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: TicketCard(ticket: filteredTickets[index]),
+              const SizedBox(height: 16),
+
+              // Ticket List
+              Expanded(
+                child: Builder(
+                  builder: (context) {
+                    if (state is TicketListLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (state is TicketListLoaded) {
+                      if (tickets.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            'No tickets found',
+                            style: TextStyle(fontSize: 16, color: Colors.grey),
+                          ),
+                        );
+                      }
+                      return ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: tickets.length,
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: TicketCard(ticket: tickets[index]),
+                          );
+                        },
                       );
-                    },
-                  );
-                } else if (state is TicketListError) {
-                  return Center(child: Text('Error: ${state.message}'));
-                }
-                return const Center(child: Text('No tickets available'));
-              },
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navigate to create ticket screen
+                    } else if (state is TicketListError) {
+                      return Center(child: Text('Error: ${state.message}'));
+                    }
+                    return const Center(child: Text('No tickets available'));
+                  },
+                ),
+              ),
+            ],
+          );
         },
-        backgroundColor: Colors.blue[700],
-        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -263,34 +285,6 @@ class _MainScreenState extends State<MainScreen> {
           ),
           Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey)),
         ],
-      ),
-    );
-  }
-
-  Widget _buildTab(String title, int index) {
-    bool isSelected = _selectedIndex == index;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: isSelected ? Colors.blue[700] : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            title,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: isSelected ? Colors.white : Colors.grey[600],
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-        ),
       ),
     );
   }

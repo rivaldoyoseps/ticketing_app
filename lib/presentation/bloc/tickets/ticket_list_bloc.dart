@@ -62,13 +62,30 @@ class TicketListBloc extends Bloc<TicketListEvent, TicketListState> {
       List<Ticket> filteredTickets = currentState.tickets;
 
       // Apply status filter
-      if (event.status != null && event.status!.isNotEmpty) {
+      if (event.status != null &&
+          event.status!.isNotEmpty &&
+          event.status != 'All') {
         filteredTickets = filteredTickets
             .where((ticket) => ticket.status == event.status)
             .toList();
       }
 
-      // Apply priority filter (assuming priority is part of status or separate field)
+      // Apply tab filter
+      if (event.tabIndex != null) {
+        if (event.tabIndex == 1) {
+          // My Tickets - filter by current user (dummy user id 1)
+          filteredTickets = filteredTickets.where((ticket) {
+            return ticket.pic.any((user) => user.id == 1);
+          }).toList();
+        } else if (event.tabIndex == 2) {
+          // Assigned - filter by assigned to current user (dummy user id 1)
+          filteredTickets = filteredTickets.where((ticket) {
+            return ticket.assignedTo?.id == 1;
+          }).toList();
+        }
+      }
+
+      // Apply priority filter (if needed)
       if (event.priority != null && event.priority!.isNotEmpty) {
         // Add priority filtering logic here if needed
       }
@@ -100,6 +117,7 @@ class TicketListBloc extends Bloc<TicketListEvent, TicketListState> {
           statusFilter: event.status,
           priorityFilter: event.priority,
           searchQuery: event.searchQuery,
+          tabIndex: event.tabIndex,
         ),
       );
     }

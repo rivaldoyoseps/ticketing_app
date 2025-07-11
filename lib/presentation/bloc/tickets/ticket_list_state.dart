@@ -18,6 +18,7 @@ class TicketListLoaded extends TicketListState {
   final String? searchQuery;
   final String? statusFilter;
   final String? priorityFilter;
+  final int? tabIndex;
 
   const TicketListLoaded({
     required this.tickets,
@@ -25,6 +26,7 @@ class TicketListLoaded extends TicketListState {
     this.searchQuery,
     this.statusFilter,
     this.priorityFilter,
+    this.tabIndex,
   });
 
   @override
@@ -34,6 +36,7 @@ class TicketListLoaded extends TicketListState {
     searchQuery,
     statusFilter,
     priorityFilter,
+    tabIndex,
   ];
 
   TicketListLoaded copyWith({
@@ -42,6 +45,7 @@ class TicketListLoaded extends TicketListState {
     String? searchQuery,
     String? statusFilter,
     String? priorityFilter,
+    int? tabIndex,
   }) {
     return TicketListLoaded(
       tickets: tickets ?? this.tickets,
@@ -49,6 +53,7 @@ class TicketListLoaded extends TicketListState {
       searchQuery: searchQuery ?? this.searchQuery,
       statusFilter: statusFilter ?? this.statusFilter,
       priorityFilter: priorityFilter ?? this.priorityFilter,
+      tabIndex: tabIndex ?? this.tabIndex,
     );
   }
 }
